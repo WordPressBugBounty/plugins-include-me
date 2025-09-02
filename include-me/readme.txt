@@ -1,10 +1,11 @@
 === Include Me ===
 Tags: php, include, php execute, external page, iframe
-Tested up to: 6.3.2
-Stable tag: 1.3.2
+Tested up to: 6.8.2
+Stable tag: 1.3.5
 Donate link: https://www.satollo.net/donations
 Contributors: satollo
-
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Include Me helps to include any external file (textual, HTML or PHP) in posts or pages.
 
 == Description ==
@@ -52,6 +53,11 @@ No questions have been asked.
 No screenshots are available.
 
 == Changelog ==
+
+= 1.3.5 =
+
+* Added filter to the post custom field content if unfiltered HTML is not allowed
+* Not clear why the post content if filtered by WP while the custom field is not.
 
 = 1.3.2 =
 

@@ -1,10 +1,12 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /*
   Plugin Name: Include Me
   Plugin URI: https://www.satollo.net/plugins/include-me
   Description: Include external HTML or PHP in any post or page.
-  Version: 1.3.5
+  Version: 1.3.7
   Requires PHP: 7.0
   Requires at least: 6.1
   Author: Stefano Lissa
@@ -17,7 +19,11 @@ if (!defined('INCLUDE_ME_DIR')) {
 }
 
 if (is_admin()) {
-    include __DIR__ . '/admin/admin.php';
+    add_action('admin_menu', function () {
+        add_options_page('Include Me', 'Include Me', 'administrator', 'include-me', function () {
+            include __DIR__ . '/admin/options.php';
+        });
+    });
 } else {
 
     function includeme_call($attrs, $content = null) {
@@ -32,18 +38,20 @@ if (is_admin()) {
         }
 
         if (isset($attrs['file'])) {
-            $file = trim(strip_tags($attrs['file']));
-            if (empty($file)) {
+            $file = wp_strip_all_tags($attrs['file']);
+            if (!$file) {
                 return '<p>Include me shortcode: the file attribute is empty</p>';
             }
 
             if (INCLUDE_ME_DIR === '*') {
-                // Reverto to the old behavior: accept any file path, if not absolute (conventionally starting by /), add the ABSPATH
+                // Revert to the old behavior: accept any file path, if not absolute (conventionally starting by /), add the ABSPATH
                 if (substr($file, 0, 1) !== '/') {
                     $file = ABSPATH . $file;
                 }
                 $clean_file = realpath($file);
                 if (!$clean_file) {
+
+                    // Show a help message to the administrator
                     if (current_user_can('administrator')) {
                         return '<p>The provided file (<code>' . esc_html($file) . '</code>) does not exist. <strong>This message is shown only to administrators</strong>.</p>';
                     }
@@ -51,6 +59,8 @@ if (is_admin()) {
             } else {
                 $clean_file = realpath(INCLUDE_ME_DIR . '/' . $file);
                 if (!$clean_file) {
+
+                    // Show a help message to the administrator
                     if (current_user_can('administrator')) {
                         return '<p>The provided file (<code>' . esc_html($file) . '</code>) does not exist in the inclusion folder (<code>wp-content/include-me</code> - if not customized). <strong>This message is shown only to administrators</strong>.</p>';
                     }
@@ -59,6 +69,7 @@ if (is_admin()) {
 
             $clean_file = wp_normalize_path($clean_file);
 
+            // Explicitely set on wp-config.php
             if (INCLUDE_ME_DIR === '*') {
                 // Do nothing
             } else {
@@ -66,6 +77,8 @@ if (is_admin()) {
                 $abs = wp_normalize_path(INCLUDE_ME_DIR);
 
                 if (strpos($clean_file, $abs) !== 0) {
+
+                    // Show a help message to the administrator
                     if (current_user_can('administrator')) {
                         return '<p>The provided file (<code>' . esc_html($file) . '</code>) is out of the inclusion folder (<code>wp-content/include-me</code> - if not customized). <strong>This message is shown only to administrators</strong>.</p>';
                     }
@@ -93,16 +106,13 @@ if (is_admin()) {
             return $buffer;
         }
 
+        // Still used by someone???
         if (isset($attrs['field'])) {
             global $post;
+            $options = get_option('includeme', []);
             $buffer = get_post_meta($post->ID, $attrs['field'], true);
-            if (!current_user_can('unfiltered_html')) {
+            if (!user_can($post->post_author, 'unfiltered_html')) {
                 $buffer = wp_kses_post($buffer);
-            }
-            if (isset($options['php'])) {
-                ob_start();
-                eval('?>' . $buffer);
-                $buffer = ob_get_clean();
             }
             if (isset($options['shortcode'])) {
                 $buffer = do_shortcode($buffer);

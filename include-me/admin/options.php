@@ -1,13 +1,11 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'save')) {
     if (isset($_POST['save'])) {
-        if (isset($_POST['options'])) {
-            $options = stripslashes_deep($_POST['options']);
+            $options = wp_unslash($_POST['options'] ?? []);
             update_option('includeme', $options);
-        } else {
-            update_option('includeme', []);
-        }
     }
 
     if (isset($_POST['find'])) {
@@ -18,9 +16,6 @@ if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'save')) {
     $options = get_option('includeme', []);
 }
 ?>
-<style>
-<?php include __DIR__ . '/admin.css' ?>
-</style>
 
 <div class="wrap">
 
@@ -29,33 +24,31 @@ if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'save')) {
     <div class="notice notice-info">
         <p style="font-weight: bold;">
             Yes, there is a good reason to
-            <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5PHGDGNHAYLJ8" target="_blank"><img style="vertical-align: bottom" src="http://www.satollo.net/images/donate.png"></a>
+            <a href="https://www.paypal.com/cgi-bin/webscr?cmd=s-xclick&hosted_button_id=5PHGDGNHAYLJ8" target="_blank"><img style="vertical-align: bottom" src="http://www.satollo.net/images/donate.png"></a>
             and even <b>2$</b> help. <a href="https://www.satollo.net/donations" target="_blank">Read more</a>.
         </p>
     </div>
 
-    <h3><?php _e('Configuration', 'include-me') ?></h3>
-
-
+    <h3><?php esc_html_e('Configuration', 'include-me') ?></h3>
 
     <form action="" method="post">
         <?php wp_nonce_field('save') ?>
         <table class="form-table">
             <tr>
-                <th><?php _e('Execute shortcodes', 'include-me') ?></th>
+                <th><?php esc_html_e('Execute shortcodes', 'include-me') ?></th>
                 <td>
-                    <input type="checkbox" name="options[shortcode]" value="1" <?php echo isset($options['shortcode']) ? 'checked' : ''; ?>>
+                    <input type="checkbox" name="options[shortcode]" value="1" <?= isset($options['shortcode']) ? 'checked' : ''; ?>>
                     <p class="description">
-                        <?php _e('When checked short codes (like [gallery]) contained in included files will be executed as if they where inside the post or page body content.', 'include-me') ?>
+                        <?php esc_html_e('When checked short codes (like [gallery]) contained in included files will be executed as if they where inside the post or page body content.', 'include-me') ?>
                     </p>
                 </td>
             </tr>
         </table>
         <p class="submit">
-            <input class="button button-primary" type="submit" name="save" value="<?php _e('Save') ?>"/>
+            <input class="button button-primary" type="submit" name="save" value="<?php esc_html_e('Save', 'include-me') ?>"/>
         </p>
 
-        <h3><?php _e('How to use', 'include-me') ?></h3>
+        <h3><?php esc_html_e('How to use', 'include-me') ?></h3>
         <p>
             Files to be included with the shortcode <code>[includeme file="..."]</code> should be placed into the <code>wp-content/include-me</code> folder.
         </p>
@@ -83,14 +76,14 @@ if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'save')) {
             <?php } else { ?>
                 <ul>
                     <?php foreach ($posts as $post) { ?>
-                        <li><a href="<?php echo get_permalink($post->id) ?>" target="_blank"><?php echo esc_html($post->post_title) ?></a></li>
+                        <li><a href="<?= esc_attr(get_permalink($post->id)) ?>" target="_blank"><?= esc_html($post->post_title) ?></a></li>
                     <?php } ?>
                 </ul>
             <?php } ?>
         <?php } ?>
 
         <p class="submit">
-            <input class="button button-primary" type="submit" name="find" value="<?php _e('Find') ?>"/>
+            <input class="button button-primary" type="submit" name="find" value="<?php esc_html_e('Find', 'include-me') ?>"/>
         </p>
     </form>
 </div>
